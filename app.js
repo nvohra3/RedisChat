@@ -26,7 +26,7 @@ io.use(ios(session)); // session support
 
 app.get("/", function(req, res) {
     req.session.user = "usernameToCome";
-    res.sendFile("/Users/asdghowns/Desktop/RedisChat/server/index.html");
+    res.sendFile("/index.html");
 });
 
 io.on("connection", function(socket) {
