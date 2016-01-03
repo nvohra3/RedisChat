@@ -14,7 +14,7 @@ var redisStore = new RedisStore({client:rClient});
 var ios = require('socket.io-express-session');
 
 var session = ExpressSession({
-    // store: redisStore,
+    store: redisStore,
     secret: "secret",
     resave: true,
     saveUninitialized: true
@@ -24,6 +24,11 @@ app.use(cookieParser);
 app.use(session);
 io.use(ios(session)); // session support
 
+var sub = redis.createClient();
+var pub = redis.createClient();
+var CHAT_NAME = "chat";
+sub.subscribe(CHAT_NAME);
+
 app.get("/", function(req, res) {
     req.session.user = "usernameToCome";
     res.sendFile("index.html", { root: __dirname });
@@ -31,7 +36,7 @@ app.get("/", function(req, res) {
 
 io.on("connection", function(socket) {
     console.log("Somebody joined the chat.");
-    
+
 
     var user = socket.handshake.session.user;
     console.log(user);
@@ -40,8 +45,13 @@ io.on("connection", function(socket) {
     socket.broadcast.emit("joinedChat", user);
 
     socket.on("toServerMessage", function(data) {
-        socket.emit("toUserMessage", data);
-        socket.broadcast.emit("toUserMessage", data);
+        // console.log("In toServerMessage: " + data);
+        pub.publish(CHAT_NAME, data);
+    });
+
+    sub.on("message", function(channel, message) {
+        // console.log("In message: " + message);
+        socket.emit("toUserMessage", message);
     });
 });
 
