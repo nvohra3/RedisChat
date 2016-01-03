@@ -17,7 +17,13 @@
   },
   "homepage": "https://github.com/nvohra3/RedisChat#readme",
   "dependencies": {
+    "connect-redis": "^3.0.1",
+    "cookie-parser": "^1.4.0",
     "express": "^4.13.3",
-    "socket.io": "^1.3.7"
+    "express-session": "^1.12.1",
+    "redis": "^2.4.2",
+    "session.socket.io": "^0.2.1",
+    "socket.io": "^1.3.7",
+    "socket.io-express-session": "^0.1.3"
   }
 }
