@@ -1,4 +1,6 @@
 var app_port = process.env.PORT || 8001;
+var REDIS_HOST = "redischat.fqys9c.0001.usw2.cache.amazonaws.com";
+var REDIS_PORT = 6379;
 
 var express = require("express");
 var app = express();
@@ -9,7 +11,7 @@ var CookieParser = require('cookie-parser');
 var cookieParser = CookieParser('secret');
 var redis = require('redis');
 var RedisStore = require('connect-redis')(ExpressSession);
-var rClient = redis.createClient();
+var rClient = redis.createClient(REDIS_PORT, REDIS_HOST);
 var redisStore = new RedisStore({client:rClient});
 var ios = require('socket.io-express-session');
 
@@ -24,8 +26,8 @@ app.use(cookieParser);
 app.use(session);
 io.use(ios(session)); // session support
 
-var sub = redis.createClient();
-var pub = redis.createClient();
+var sub = redis.createClient(REDIS_PORT, REDIS_HOST);
+var pub = redis.createClient(REDIS_PORT, REDIS_HOST);
 var CHAT_NAME = "chat";
 sub.subscribe(CHAT_NAME);
 
