@@ -1,4 +1,4 @@
-var app_port = 8001;
+var app_port = process.env.PORT || 8001;
 
 var express = require("express");
 var app = express();
@@ -8,7 +8,6 @@ var io = require("socket.io")(server);
 var CookieParser = require('cookie-parser');
 var cookieParser = CookieParser('secret');
 var redis = require('redis');
-// debugger;
 var RedisStore = require('connect-redis')(ExpressSession);
 var rClient = redis.createClient();
 var redisStore = new RedisStore({client:rClient});
@@ -25,10 +24,6 @@ app.use(cookieParser);
 app.use(session);
 io.use(ios(session)); // session support
 
-// io.use(ios(app.session));
-
-// app.use(session({key:"jsessionid", secret: "secret"}));
-
 app.get("/", function(req, res) {
     req.session.user = "usernameToCome";
     res.sendFile("/Users/asdghowns/Desktop/RedisChat/server/index.html");
@@ -36,11 +31,10 @@ app.get("/", function(req, res) {
 
 io.on("connection", function(socket) {
     console.log("Somebody joined the chat.");
-    debugger;
+    
 
     var user = socket.handshake.session.user;
     console.log(user);
-
 
     socket.emit("joinedChat", user);
     socket.broadcast.emit("joinedChat", user);
