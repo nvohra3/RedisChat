@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<head></head>
+<body>
+	<div class="messages" id="messages">
+	</div>
+	<div class="input">
+		<input type="text" id="messageBox" placeholder="Type your message here.." style="height:50px;width:720px">
+		<input type="button" id="sendMessage" onclick="send()" placeholder="Send Message!" style="height:50px;width:80px">
+	</div>
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+	<script>
+		var socket;
+		$(document).ready(function() {
+	  		socket = io();
+	  		socket.on("toUserMessage", function(message) {
+	  			console.log(message);
+	  			var node = document.createElement("p");
+		    	var textnode = document.createTextNode(message);
+	    		node.appendChild(textnode);
+		    	document.getElementById("messages").appendChild(node);
+	  		});
+
+	  		socket.on("joinedChat", function(data) {
+	  			console.log(data);
+	  			var node = document.createElement("p");
+		    	var textnode = document.createTextNode(data + " joined the chatroom. Say hello!");
+	    		node.appendChild(textnode);
+		    	document.getElementById("messages").appendChild(node);
+	  		});
+	  	});
+	</script>
+	<script>
+	function send() {
+  		var messageBox = document.getElementById("messageBox");
+  		socket.emit("toServerMessage", messageBox.value);
+  		messageBox.value = "";
+	}
+	</script>
+</body>
