@@ -1,40 +1,61 @@
 <!DOCTYPE html>
 <head></head>
 <body>
-	<div class="messages" id="messages">
+	<div class="join-chat">
+		<label for="username">Username:</label>
+		<input type="text" id="username" name="username" />
+		<input type="button" id="join-chat" value="Join Chat" onclick="enterChatRoom()" />
 	</div>
-	<div class="input">
-		<input type="text" id="messageBox" placeholder="Type your message here.." style="height:50px;width:720px">
-		<input type="button" id="sendMessage" onclick="send()" placeholder="Send Message!" style="height:50px;width:80px">
+	<div class="chatRoom">
+		<div class="messages" id="messages">
+		</div>
+		<div class="input">
+			<input type="text" id="messageBox" placeholder="Type your message here.." style="height:50px;width:720px">
+			<input type="button" id="sendMessage" onclick="send()" placeholder="Send Message!" style="height:50px;width:80px">
+		</div>
 	</div>
 	<script src="/socket.io/socket.io.js"></script>
 	<script src="http://code.jquery.com/jquery-1.11.1.js"></script>
 	<script>
 		var socket;
-		$(document).ready(function() {
-	  		socket = io();
-	  		socket.on("toUserMessage", function(message) {
-	  			console.log(message);
-	  			var node = document.createElement("p");
-		    	var textnode = document.createTextNode(message);
-	    		node.appendChild(textnode);
-		    	document.getElementById("messages").appendChild(node);
-	  		});
-
-	  		socket.on("joinedChat", function(data) {
-	  			console.log(data);
-	  			var node = document.createElement("p");
-		    	var textnode = document.createTextNode(data + " joined the chatroom. Say hello!");
-	    		node.appendChild(textnode);
-		    	document.getElementById("messages").appendChild(node);
-	  		});
-	  	});
+		$(".chatRoom").hide();
 	</script>
 	<script>
-	function send() {
-  		var messageBox = document.getElementById("messageBox");
-  		socket.emit("toServerMessage", messageBox.value);
-  		messageBox.value = "";
-	}
+		function enterChatRoom() {
+			$(document).ready(function() {
+		  		$(".join-chat").hide();
+		  		$(".chatRoom").show();
+    			socket = io.connect({query: 'username=' + username.value});
+
+		  		socket.on("toUserMessage", function(object) {
+		  			var line = object.username + ": " + object.message;
+		  			var node = document.createElement("p");
+			    	var textnode = document.createTextNode(line);
+		    		node.appendChild(textnode);
+			    	document.getElementById("messages").appendChild(node);
+		  		});
+
+		  		socket.on("joining", function(data) {
+		  			console.log("joinedChat: " + data.username);
+		  			var node = document.createElement("p");
+			    	var textnode = document.createTextNode(data.username + " joined the chatroom. Say hello!");
+		    		node.appendChild(textnode);
+			    	document.getElementById("messages").appendChild(node);
+		  		});
+
+		  		socket.on("leaving", function(data) {
+					var node = document.createElement("p");
+			    	var textnode = document.createTextNode(data.username + " has left the chatroom. :(");
+		    		node.appendChild(textnode);
+			    	document.getElementById("messages").appendChild(node);
+		  		});
+		  	});
+		}
+
+		function send() {
+	  		var messageBox = document.getElementById("messageBox");
+	  		socket.emit("toServerMessage", { "username" : username.value, "message" : messageBox.value });
+	  		messageBox.value = "";
+		}
 	</script>
 </body>

@@ -29,29 +29,32 @@
 // var CHAT_NAME = "chat";
 // sub.subscribe(CHAT_NAME);
 
-// app.get("/", function(req, res) {
-//     req.session.user = "usernameToCome";
+// app.get("/home", function(req, res) {
 //     res.sendFile("index.html", { root: __dirname });
 // });
 
 // io.on("connection", function(socket) {
 //     console.log("Somebody joined the chat.");
+//     var username = socket.handshake.query.username;
 
-
-//     var user = socket.handshake.session.user;
-//     console.log(user);
-
-//     socket.emit("joinedChat", user);
-//     socket.broadcast.emit("joinedChat", user);
+//     // Still don't get why both are needed
+//     // Don't emit this; publish it
+//     socket.emit("joining", {"username" : username });
+//     socket.broadcast.emit("joining", {"username" : username });
 
 //     socket.on("toServerMessage", function(data) {
-//         // console.log("In toServerMessage: " + data);
-//         pub.publish(CHAT_NAME, data);
+//         pub.publish(CHAT_NAME, JSON.stringify({ "username" : data.username, "message" : data.message }));
 //     });
 
-//     sub.on("message", function(channel, message) {
-//         // console.log("In message: " + message);
-//         socket.emit("toUserMessage", message);
+//     sub.on("message", function(channel, data) {
+//         var object = JSON.parse(data);
+//         socket.emit("toUserMessage", { "username" : object.username, "message" : object.message });
+//     });
+
+//     socket.on("disconnect", function() {
+//         console.log(username + " leaving");
+//         socket.emit("leaving", { "username" : username });
+//         socket.broadcast.emit("leaving", { "username" : username });
 //     });
 // });
 
@@ -90,29 +93,33 @@ var pub = redis.createClient(REDIS_PORT, REDIS_HOST);
 var CHAT_NAME = "chat";
 sub.subscribe(CHAT_NAME);
 
-app.get("/", function(req, res) {
-    req.session.user = "usernameToCome";
+app.get("/home", function(req, res) {
     res.sendFile("index.html", { root: __dirname });
 });
 
 io.on("connection", function(socket) {
-    console.log("Somebody joined the chat.");
+    var username = socket.handshake.query.username;
+    console.log(username + " joined the chatroom.");
 
-
-    var user = socket.handshake.session.user;
-    console.log(user);
-
-    socket.emit("joinedChat", user);
-    socket.broadcast.emit("joinedChat", user);
+    // Still don't get why both are needed
+    // Don't emit this; publish it
+    socket.emit("joining", {"username" : username });
+    socket.broadcast.emit("joining", {"username" : username });
 
     socket.on("toServerMessage", function(data) {
-        // console.log("In toServerMessage: " + data);
-        pub.publish(CHAT_NAME, data);
+        console.log(data.username + " just sent the message \"" + data.message + "\"");
+        pub.publish(CHAT_NAME, JSON.stringify({ "username" : data.username, "message" : data.message }));
     });
 
-    sub.on("message", function(channel, message) {
-        // console.log("In message: " + message);
-        socket.emit("toUserMessage", message);
+    sub.on("message", function(channel, data) {
+        var object = JSON.parse(data);
+        socket.emit("toUserMessage", { "username" : object.username, "message" : object.message });
+    });
+
+    socket.on("disconnect", function() {
+        console.log(username + " is leaving the chatroom.");
+        socket.emit("leaving", { "username" : username });
+        socket.broadcast.emit("leaving", { "username" : username });
     });
 });
 
