@@ -64,6 +64,7 @@ var app_port = process.env.PORT || 8001;
 var REDIS_HOST = "redischatcluster.fqys9c.0001.usw2.cache.amazonaws.com";
 var REDIS_PORT = 6379;
 
+require('events').EventEmitter.defaultMaxListeners = Infinity;
 var express = require("express");
 var app = express();
 var ExpressSession = require("express-session");
@@ -93,7 +94,7 @@ var pub = redis.createClient(REDIS_PORT, REDIS_HOST);
 var CHAT_NAME = "chat";
 sub.subscribe(CHAT_NAME);
 
-app.get("/home", function(req, res) {
+app.get("/", function(req, res) {
     res.sendFile("index.html", { root: __dirname });
 });
 
@@ -107,8 +108,8 @@ io.on("connection", function(socket) {
     socket.broadcast.emit("joining", {"username" : username });
 
     socket.on("toServerMessage", function(data) {
-        console.log(data.username + " just sent the message \"" + data.message + "\"");
-        pub.publish(CHAT_NAME, JSON.stringify({ "username" : data.username, "message" : data.message }));
+        console.log(username + " just sent the message \"" + data.message + "\"");
+        pub.publish(CHAT_NAME, JSON.stringify({ "username" : username, "message" : data.message }));
     });
 
     sub.on("message", function(channel, data) {

@@ -54,7 +54,7 @@
 
 		function send() {
 	  		var messageBox = document.getElementById("messageBox");
-	  		socket.emit("toServerMessage", { "username" : username.value, "message" : messageBox.value });
+	  		socket.emit("toServerMessage", { "message" : messageBox.value });
 	  		messageBox.value = "";
 		}
 	</script>
