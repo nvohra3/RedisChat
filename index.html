@@ -11,7 +11,7 @@
 		</div>
 		<div class="input">
 			<input type="text" id="messageBox" placeholder="Type your message here.." style="height:50px;width:720px">
-			<input type="button" id="sendMessage" onclick="send()" placeholder="Send Message!" style="height:50px;width:80px">
+			<input type="button" id="sendMessage" onclick="send()" value="Send\nMessage!" style="height:50px;width:80px">
 		</div>
 	</div>
 	<script src="/socket.io/socket.io.js"></script>
@@ -27,35 +27,38 @@
 		  		$(".chatRoom").show();
     			socket = io.connect({query: 'username=' + username.value});
 
-		  		socket.on("toUserMessage", function(object) {
-		  			var line = object.username + ": " + object.message;
-		  			var node = document.createElement("p");
-			    	var textnode = document.createTextNode(line);
-		    		node.appendChild(textnode);
-			    	document.getElementById("messages").appendChild(node);
+    			socket.on("newUser", function(data) {
+		  			var line = data.username + data.body;
+		  			appendLine(line);
+    			})
+
+		  		socket.on("toUserMessage", function(data) {
+		  			var line = data.username + ": " + data.body;
+		  			appendLine(line);
 		  		});
 
-		  		socket.on("joining", function(data) {
-		  			console.log("joinedChat: " + data.username);
-		  			var node = document.createElement("p");
-			    	var textnode = document.createTextNode(data.username + " joined the chatroom. Say hello!");
-		    		node.appendChild(textnode);
-			    	document.getElementById("messages").appendChild(node);
+		  		socket.on("userLeaving", function(data) {
+		  			var line = data.username + data.body;
+		  			appendLine(line);
 		  		});
 
-		  		socket.on("leaving", function(data) {
-					var node = document.createElement("p");
-			    	var textnode = document.createTextNode(data.username + " has left the chatroom. :(");
-		    		node.appendChild(textnode);
-			    	document.getElementById("messages").appendChild(node);
-		  		});
+		  		window.onbeforeunload = function() {
+ 				   	socket.emit("leavingChatroom");
+				}
 		  	});
 		}
 
 		function send() {
 	  		var messageBox = document.getElementById("messageBox");
-	  		socket.emit("toServerMessage", { "message" : messageBox.value });
+	  		socket.emit("toServerMessage", { "body" : messageBox.value });
 	  		messageBox.value = "";
+		}
+
+		function appendLine(message) {
+			var node = document.createElement("p");
+			var textnode = document.createTextNode(message);
+	    	node.appendChild(textnode);
+	    	document.getElementById("messages").appendChild(node);
 		}
 	</script>
 </body>
