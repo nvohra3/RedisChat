@@ -12,6 +12,7 @@
 		<div class="input">
 			<input type="text" id="messageBox" placeholder="Type your message here.." style="height:50px;width:720px">
 			<input type="button" id="sendMessage" onclick="send()" value="Send\nMessage!" style="height:50px;width:80px">
+			<button
 		</div>
 	</div>
 	<script src="/socket.io/socket.io.js"></script>
@@ -21,18 +22,22 @@
 		$(".chatRoom").hide();
 	</script>
 	<script>
+		var NEW_USER_JOINED_ROOM = "userJoined";
+		var NEW_MESSAGE = "newMessage";
+		var USER_LEFT_ROOM = "userLeaving";
+
 		function enterChatRoom() {
 			$(document).ready(function() {
 		  		$(".join-chat").hide();
 		  		$(".chatRoom").show();
     			socket = io.connect({query: 'username=' + username.value});
 
-    			socket.on("newUser", function(data) {
+    			socket.on("userJoined", function(data) {
 		  			var line = data.username + data.body;
 		  			appendLine(line);
     			})
 
-		  		socket.on("toUserMessage", function(data) {
+		  		socket.on("newMessage", function(data) {
 		  			var line = data.username + ": " + data.body;
 		  			appendLine(line);
 		  		});
@@ -43,14 +48,14 @@
 		  		});
 
 		  		window.onbeforeunload = function() {
- 				   	socket.emit("leavingChatroom");
+ 				   	socket.emit("userLeaving");
 				}
 		  	});
 		}
 
 		function send() {
 	  		var messageBox = document.getElementById("messageBox");
-	  		socket.emit("toServerMessage", { "body" : messageBox.value });
+	  		socket.emit("newMessage", { "body" : messageBox.value });
 	  		messageBox.value = "";
 		}
 
